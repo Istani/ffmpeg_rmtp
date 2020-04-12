@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/Istani/ffmpeg_rmtp/issues"
   },
-  "homepage": "https://github.com/Istani/ffmpeg_rmtp#readme"
+  "homepage": "https://github.com/Istani/ffmpeg_rmtp#readme",
+  "dependencies": {
+    "fluent-ffmpeg": "^2.1.2"
+  }
 }
