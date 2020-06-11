@@ -26,6 +26,7 @@ var current_time = moment().format();
 console.log(current_time);
 
 async function generate_livestream_picture() {
+  current_time = moment().format();
   const font = await jimp.loadFont(jimp.FONT_SANS_32_BLACK);
   var image_data = { widht: 1920, height: 1080 };
   new jimp(image_data.widht, image_data.height, 0x3366ff, (err, image) => {
@@ -34,19 +35,24 @@ async function generate_livestream_picture() {
       height: jimp.measureTextHeight(font, current_time, 100),
     };
     image.print(font, image_data.widht - text_data.widht, 0, current_time);
-    image.write("livestream.png");
-    console.log("Write Picture", current_time);
+    image.write("temp/livestream.png");
   });
 }
 setInterval(() => {
-  current_time = moment().format();
   generate_livestream_picture();
-}, 500);
+}, 1000);
+setInterval(() => {
+  try {
+    fs.renameSync("temp/livestream.png", "livestream.png");
+    fs.unlinkSync("temp/livestream.png");
+  } catch (e) {}
+}, 10);
 
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
 async function main() {
-  const { stdout, stderr } = await exec('ffmpeg -loop 1 -i livestream.png -t 120 -c:v libx264 -pix_fmt yuv420p -an -f flv "rtmp://live.twitch.tv/app/' + process.env.stream_key +'"');
+  //const { stdout, stderr } = await exec('ffmpeg -loop 1 -i livestream.png -t 120 -c:v libx264 -pix_fmt yuv420p -an -f flv "rtmp://live.twitch.tv/app/' + process.env.stream_key +'"');
+  const { stdout, stderr } = await exec('C:\\Dropbox\\SimpleSoftwareStudioShare\\ffmpeg_rmtp\\ffmpeg\\bin\\ffmpeg.exe -loop 1 -i livestream.png -t 120 -c:v libx264 -pix_fmt yuv420p -an -f flv "rtmp://live.twitch.tv/app/' + process.env.stream_key + '"');
 
   if (stderr) {
     console.error(`error: ${stderr}`);
