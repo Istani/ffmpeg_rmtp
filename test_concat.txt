@@ -1,3 +1,0 @@
-file 'test.png'
-duration 20
-file 'test.png'

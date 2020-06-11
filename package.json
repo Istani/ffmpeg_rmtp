@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/Istani/ffmpeg_rmtp#readme",
   "dependencies": {
-    "fluent-ffmpeg": "^2.1.2"
+    "dotenv": "^8.2.0",
+    "jimp": "^0.13.0",
+    "moment": "^2.26.0"
   }
 }
