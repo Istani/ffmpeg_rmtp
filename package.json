@@ -1,24 +1,18 @@
 {
-  "name": "ffmpeg_rmtp",
-  "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
+  "name": "puppetcam",
+  "version": "0.0.1",
+  "description": "Capture all automated actions in a browser and export as a video",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "example": "node export.js http://tobiasahlin.com/spinkit/ spinner.webm"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Istani/ffmpeg_rmtp.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Istani/ffmpeg_rmtp/issues"
-  },
-  "homepage": "https://github.com/Istani/ffmpeg_rmtp#readme",
+  "keywords": [
+    "record",
+    "chrome",
+    "puppeteer",
+    "screencast"
+  ],
   "dependencies": {
-    "puppeteer": "^5.0.0",
-    "puppeteer-recorder": "^1.0.7"
+    "puppeteer": "^2.1.0",
+    "xvfb": "^0.3.0"
   }
 }
