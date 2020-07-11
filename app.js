@@ -3,8 +3,8 @@ const puppeteer = require("puppeteer");
 const { Readable } = require("stream");
 const ffmpeg = require("fluent-ffmpeg");
 
-ffmpeg.setFfmpegPath(__dirname + "\\ffmpeg\\bin\\ffmpeg.exe");
-ffmpeg.setFfprobePath(__dirname + "\\ffmpeg\\bin\\ffprobe.exe");
+//ffmpeg.setFfmpegPath(__dirname + "\\ffmpeg\\bin\\ffmpeg.exe");
+//ffmpeg.setFfprobePath(__dirname + "\\ffmpeg\\bin\\ffprobe.exe");
 
 async function wait(ms) {
   return new Promise((res) => setTimeout(res, ms));
@@ -37,9 +37,10 @@ async function main() {
       "--no-sandbox", 
       "--auto-select-desktop-capture-source=Die exakte Uhrzeit der Atomuhr online bei uhrzeit.org",
       "--disable-setuid-sandbox"],
-    //,executablePath="chromium"
+    executablePath:"chromium-browser"
   });
   const page = (await browser.pages())[0];
+  await page.setDefaultNavigationTimeout(0);
   try {
     await page.goto("https://www.uhrzeit.org/atomuhr.php", { waitUntil: "networkidle2" });
   } catch (e) {
@@ -79,13 +80,17 @@ async function main() {
     .videoBitrate(2000)
     .videoCodec("copy")
     //.audioCodec("acc")
-    //.audioFrequency(44100)
+    .audioFrequency(44100)
     .format("flv")
     .saveToFile("test.flv");
   //.save("rmtp://live-fra05.twitch.tv/app/${process.env.STREAM_KEY}");
 
   cmd.on("start", console.log);
   cmd.on("codecData", (d) => console.log("codeData", d));
+  cmd.on('error', function(err) {
+    console.log('An error occurred: ' + err.message);
+    process.exit(1);
+  })
   //cmd.on("progress", (p) => console.log("progress", p));
 }
 main();
