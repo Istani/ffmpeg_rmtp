@@ -1,58 +1,91 @@
-// ReadableFromPuppeterr, mediaDevices sind wohl die zabuerwörter, danke^^
+// https://www.twitch.tv/videos/676415394
+const puppeteer = require("puppeteer");
+const { Readable } = require("stream");
+const ffmpeg = require("fluent-ffmpeg");
 
-var url = 'https://www.youtube.com/watch?v=kRyIjXSBP-I',
-    exportname = 'capture',
-    size = '1280x720',
-    width = parseInt(size.split('x')[0]),
-    height = parseInt(size.split('x')[1]),
-    length = "10s";
-    length = parseInt(length.replace('s',''));
+ffmpeg.setFfmpegPath(__dirname + "\\ffmpeg\\bin\\ffmpeg.exe");
+ffmpeg.setFfprobePath(__dirname + "\\ffmpeg\\bin\\ffprobe.exe");
 
-const puppeteer = require('puppeteer');
+async function wait(ms) {
+  return new Promise((res) => setTimeout(res, ms));
+}
 
-var options     = {
-  headless: false,
-  args: [
-    '--enable-usermedia-screen-capturing',
-    '--allow-http-screen-capture',
-    '--auto-select-desktop-capture-source=puppetcam',
-    '--disable-infobars',
-    '--force-device-scale-factor=1',
-    '--load-extension=' + __dirname,
-    '--disable-extensions-except=' + __dirname,
-  ],
+class ReadableFromPuppeteer extends Readable {
+  //private page;
+
+  constructor(options) {
+    super(options);
+
+    this.page = options.page;
+
+    this.page.exposeFunction("push", (arr) => {
+      console.log(arr.length);
+      this.push(new Uint8Array(arr));
+    });
+  }
+
+  _read() {}
 }
 
 async function main() {
-    exportname = exportname.replace('.webm','') + '-' + width + 'x' + height + '.webm';
-    const browser = await puppeteer.launch(options)
-    const pages = await browser.pages()
-    const page = pages[0]
-    await page._client.send('Emulation.clearDeviceMetricsOverride')
-    await page.setViewport({width: width, height: height, deviceScaleFactor: 1})
-    await page.goto(url, {waitUntil: 'networkidle2'})
-    await page.setBypassCSP(true)
+  const browser = await puppeteer.launch({
+    headless: false,
+    defaultViewport: { width: 1920, height: 1080 },
+    args: [
+      "--enable-usermedia-screen-capturing", 
+      "--allow-http-screen-capture", 
+      "--no-sandbox", 
+      "--auto-select-desktop-capture-source=Die exakte Uhrzeit der Atomuhr online bei uhrzeit.org",
+      "--disable-setuid-sandbox"],
+    //,executablePath="chromium"
+  });
+  const page = (await browser.pages())[0];
+  try {
+    await page.goto("https://www.uhrzeit.org/atomuhr.php", { waitUntil: "networkidle2" });
+  } catch (e) {
+    console.error(e);
+  }
 
-    // Perform any actions that have to be captured in the exported video
+  const readable = new ReadableFromPuppeteer({ page });
 
-    // Give a file name
-    await page.evaluate(filename=>{
-      window.postMessage({type: 'SET_EXPORT_PATH', filename: filename}, '*')
-    }, exportname)
+  await page.evaluate(async () => {
+    console.log(this);
+    const captureStream = await navigator.mediaDevices.getDisplayMedia({
+      video: {
+        displaySurface: "browser",
+      },
+    });
 
-/*
-    // Wait
-    await page.waitFor(length * 1000);
+    const recorder = new MediaRecorder(captureStream, {
+      //mineType: "video/webm;codecs=H264"
+      mineType: "video/webm"
+    });
 
-    // Stop recording
-    await page.evaluate(filename=>{
-      window.postMessage({type: 'REC_STOP'}, '*')
-    }, exportname)
+    window.captureStream = captureStream;
+    window.recorder = recorder;
+    console.log(captureStream);
+    console.log(recorder);
 
-    // Wait for download of webm to complete
-    await page.waitForSelector('html.downloadComplete', {timeout: 0})
-    await browser.close()
-*/
+    recorder.addEventListener("dataavailable", async (evt) => {
+      const buffer = await evt.data.arrayBuffer();
+      const array = new Uint8Array(buffer);
+      console.log(array);
+      window.push([...array]);
+    });
+    recorder.start(1000);
+  });
+
+  const cmd = ffmpeg({ source: readable })
+    .videoBitrate(2000)
+    .videoCodec("copy")
+    //.audioCodec("acc")
+    //.audioFrequency(44100)
+    .format("flv")
+    .saveToFile("test.flv");
+  //.save("rmtp://live-fra05.twitch.tv/app/${process.env.STREAM_KEY}");
+
+  cmd.on("start", console.log);
+  cmd.on("codecData", (d) => console.log("codeData", d));
+  //cmd.on("progress", (p) => console.log("progress", p));
 }
-
-main()
+main();

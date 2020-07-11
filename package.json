@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/Istani/ffmpeg_rmtp#readme",
   "dependencies": {
+    "fluent-ffmpeg": "^2.1.2",
     "puppeteer": "^5.0.0",
     "puppeteer-recorder": "^1.0.7"
   }
