@@ -59,7 +59,7 @@ async function main() {
 
     const recorder = new MediaRecorder(captureStream, {
       //mineType: "video/webm;codecs=H264"
-      mineType: "video/webm"
+      mineType: "video/webm;codecs=H264"
     });
 
     window.captureStream = captureStream;
@@ -79,7 +79,7 @@ async function main() {
   const cmd = ffmpeg({ source: readable })
     .videoBitrate(2000)
     .videoCodec("copy")
-    //.audioCodec("acc")
+    .audioCodec("aac")
     .audioFrequency(44100)
     .format("flv")
     .saveToFile("test.flv");
